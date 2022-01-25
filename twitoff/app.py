@@ -19,6 +19,9 @@ def create_app():
 
     @app.route("/")
     def home_page():
+        # initialize on first run
+        # Checks IF EXISTS by default to prevent recreating tables
+        DB.create_all()
         # query for all users in the database
         users = User.query.all()
         return render_template('base.html', title='Home', users=users)
@@ -30,7 +33,7 @@ def create_app():
         DB.drop_all()
         # Make new DB Tables
         DB.create_all()
-        return "This is the reset page"
+        return render_template('base.html', title='Reset Database')
 
     @app.route('/populate')
     # Test database functionality
@@ -59,6 +62,7 @@ def create_app():
         # Just like SQLite needs .commit()
         DB.session.commit()
 
-        return render_template('base.html', title='Populate')
+        users = User.query.all()
+        return render_template('base.html', title='Populate Database', users=users)
 
     return app
