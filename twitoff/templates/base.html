@@ -21,7 +21,9 @@
         {% block content %}
         {% for user in users %}
         <p>{{ user.username }}</p>
-        <p>{{ user.tweets[0].text }}</p>
+        {% for tweet in user.tweets %}
+        <p>{{ tweet.text }}</p>
+        {% endfor %}
         {% endfor %}
         {% endblock %}
     </article>

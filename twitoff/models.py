@@ -24,6 +24,8 @@ class User(DB.Model):
     # Tweets list is created by the .relationship and .backref in the Tweet class
     # tweets = []
 
+    newest_tweet_id = DB.Column(DB.BigInteger)  # Used for updating tweet lists
+
 
 class Tweet(DB.Model):
 
@@ -42,3 +44,7 @@ class Tweet(DB.Model):
     #  which will be a list of all of the user tweets)
     user = DB.relationship("User", backref=DB.backref('tweets'), lazy=True)
     # (lazy just means that it won't be created until accessed)
+
+    # Word Embeddings Vector Storage (vect for short)
+    # A PickleType is any python object
+    vect = DB.Column(DB.PickleType, nullable=False)
