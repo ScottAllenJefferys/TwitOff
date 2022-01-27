@@ -4,6 +4,7 @@ from .models import DB, User, Tweet
 # Its just to avoid having to write out the entire path
 from os import getenv
 from .twitter import add_or_update_user
+from .predict import predict_user
 
 # 'Factory' function to create the app
 
@@ -21,18 +22,11 @@ def create_app():
 
     @app.route("/", methods=['GET', 'POST'])
     def home_page():
-        # initialize the Databse on first run
-        # Checks IF EXISTS by default to prevent recreating tables
-        DB.create_all()
-
         # THIS SOMEHOW ALLOWS HTML FORM INPUT
-        if request.method == "POST":
-            add_or_update_user(request.form.get("new_username"))
+        # if request.method == "POST":
+        #     add_or_update_user(request.form.get("new_username"))
 
-        # query for all users in the database
-        users = User.query.all()
-
-        return render_template('home.html', title='Home', users=users)
+        return render_template('base.html', title='Home', users=User.query.all())
 
     @app.route('/reset')
     def reset():
@@ -41,29 +35,50 @@ def create_app():
         DB.drop_all()
         # Make new DB Tables
         DB.create_all()
-        return render_template('base.html', title='Reset Database')
-
-    @app.route('/populate')
-    # Test database functionality
-    # by inserting some fake data into the DB
-    def populate():
-
-        add_or_update_user('nasa')
-
-        add_or_update_user('nntaleb')
-
-        users = User.query.all()
-        return render_template('base.html', title='Populate Database', users=users)
+        return render_template('base.html', title='Database Has Been Reset')
 
     @app.route('/update')
     def update():
 
         usernames = get_usernames()
+
         for username in usernames:
             add_or_update_user(username)
 
-        users = User.query.all()
-        return render_template('home.html', title='Update User Tweets', users=users)
+        return render_template('base.html', title='All Users Updated', users=User.query.all())
+
+    # normally we only allow GET requests, this restricts us to only POST (POST = changing database)
+    @app.route('/user', methods=['POST'])
+    @app.route('/user/<username>', methods=['GET'])
+    def user(username=None, message=''):
+        username = username or request.values['user_name']
+        try:
+            if request.method == 'POST':
+                add_or_update_user(username)
+                message = f'{username} successfully added'
+            tweets = User.query.filter(
+                User.username == username).one().tweets
+        except Exception as e:
+            message = f'Error adding {username}: {e}'
+
+        return render_template('user.html', title=username, tweets=tweets, message=message)
+
+    @app.route('/compare', methods=['POST'])
+    def compare():
+        user0, user1 = sorted([
+            request.values['user0'], request.values['user1']
+        ])
+
+        if user0 == user1:
+            message = 'Cannot compare a user to themselves'
+        else:
+            prediction = predict_user(
+                user0, user1, request.values['tweet_text'])
+            message = '"{}" is more likely to be said by {} than {}'.format(request.values['tweet_text'],
+                                                                            user1 if prediction else user0,
+                                                                            user0 if prediction else user1)
+
+        return render_template('prediction.html', title="Prediction", message=message)
 
     return app
 
