@@ -22,9 +22,7 @@ def create_app():
 
     @app.route("/", methods=['GET', 'POST'])
     def home_page():
-        # THIS SOMEHOW ALLOWS HTML FORM INPUT
-        # if request.method == "POST":
-        #     add_or_update_user(request.form.get("new_username"))
+        DB.create_all()
 
         return render_template('base.html', title='Home', users=User.query.all())
 
