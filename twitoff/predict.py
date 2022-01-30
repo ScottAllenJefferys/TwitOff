@@ -39,6 +39,8 @@ def predict_user(username0, username1, hypo_tweet_text):
     hypo_tweet_vect = vectorize_tweet(hypo_tweet_text)
 
     # Generate a prediction
-    prediction = log_reg.predict([hypo_tweet_vect])
+    prediction = log_reg.predict([hypo_tweet_vect])[0]
 
-    return prediction[0]
+    probabilities = log_reg.predict_proba([hypo_tweet_vect])[0]
+
+    return prediction, probabilities

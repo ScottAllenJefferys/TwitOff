@@ -40,10 +40,6 @@ def add_or_update_user(username):
         if tweets:
             db_user.newest_tweet_id = tweets[0].id
 
-        # We created the folder 'my_model'
-        # nlp = spacy.load('en_core_web_sm')
-        # nlp.to_disk('my_model')
-
         # Loop over tweets and insert them into DB 1 by 1
         for tweet in tweets:
             tweet_vector = vectorize_tweet(tweet.full_text)
@@ -60,6 +56,10 @@ def add_or_update_user(username):
     else:
         DB.session.commit()
 
+
+# We created the folder 'my_model' for natural language processing
+# nlp = spacy.load('en_core_web_sm')
+# nlp.to_disk('my_model')
 
 nlp = spacy.load('my_model/')
 

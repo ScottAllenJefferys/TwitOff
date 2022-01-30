@@ -12,6 +12,8 @@ spacy = "*"
 python-dotenv = "*"
 scikit-learn = "*"
 gunicorn = "*"
+notebook = "*"
+wtforms = "*"
 
 [dev-packages]
 autopep8 = "*"

@@ -1,12 +1,35 @@
+# ***********************************************************
+
+# Web Application Framework: flask
 from flask import Flask, render_template, request
-from .models import DB, User, Tweet
-# The DOT says that the file is in the same folder
-# Its just to avoid having to write out the entire path
+# flask is based on the Werkzeg WSGI toolkit
+#  and the Jinja2 template engine
+# WSGI (web server gateway interface) is the
+#  standard python interface between web servers
+#  and web applications
+# Jinja2 combines HTML templates with python
+#  variables to render dynamic web pages
+
+# Operating System Interaction: os
 from os import getenv
+# getenv(key) returns the value of the
+#  environment variable key if it exists
+
+# Database and Database Objects
+from .models import DB, User, Tweet
+# made with SQLAlchemy using SQLite3
+
+# Twitter API Interaction
 from .twitter import add_or_update_user
+# add_or_update_user either adds a User
+#  to the User table within the DB database
+#  or adds any news Tweets to that User
+#  if they were already in the database
+
+# Machine Learning Functions
 from .predict import predict_user
 
-# 'Factory' function to create the app
+# ***********************************************************
 
 
 def create_app():
@@ -28,7 +51,7 @@ def create_app():
 
     @app.route('/reset')
     def reset():
-        # We want to do some database stuff inside here
+        '''Resets the database'''
         # Drop old DB Tables
         DB.drop_all()
         # Make new DB Tables
@@ -37,18 +60,18 @@ def create_app():
 
     @app.route('/update')
     def update():
-
+        '''Updates the tweets of all Users already in the database'''
         usernames = get_usernames()
-
         for username in usernames:
             add_or_update_user(username)
-
         return render_template('base.html', title='All Users Updated', users=User.query.all())
 
-    # normally we only allow GET requests, this restricts us to only POST (POST = changing database)
     @app.route('/user', methods=['POST'])
     @app.route('/user/<username>', methods=['GET'])
     def user(username=None, message=''):
+        '''Adds a new user to the database or fetches
+           tweets for an existing user
+        '''
         username = username or request.values['user_name']
         try:
             if request.method == 'POST':
@@ -63,26 +86,36 @@ def create_app():
 
     @app.route('/compare', methods=['POST'])
     def compare():
+        '''Requests two usernames and a hypothetical tweet
+           Returns prediction of which user is more likely
+            to make that tweet
+        '''
         user0, user1 = sorted([
             request.values['user0'], request.values['user1']
         ])
-
+        # Prevent Self Comparison
         if user0 == user1:
             message = 'Cannot compare a user to themselves'
         else:
-            prediction = predict_user(
+            prediction, probabilities = predict_user(
                 user0, user1, request.values['tweet_text'])
-            message = '"{}" is more likely to be said by {} than {}'.format(request.values['tweet_text'],
-                                                                            user1 if prediction else user0,
-                                                                            user0 if prediction else user1)
 
+            # Strength of Prediction
+            times_more_likely = round(
+                max(probabilities) / min(probabilities), 2) - 1
+
+            # Message to be Displayed
+            message = '"{}" is {} times more likely to be said by {} than {}'.format(request.values['tweet_text'],
+                                                                                     times_more_likely,
+                                                                                     user1 if prediction else user0,
+                                                                                     user0 if prediction else user1)
         return render_template('prediction.html', title="Prediction", message=message)
 
     return app
 
 
 def get_usernames():
-    # get all of the usernames of existing users
+    '''Get all of the usernames of existing users'''
     Users = User.query.all()
     usernames = []
     for user in Users:
