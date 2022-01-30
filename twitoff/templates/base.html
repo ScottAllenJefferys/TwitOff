@@ -24,7 +24,7 @@
         {% block content %}
         <div>
             <h1>{{ title }}</h1>
-            <form action="/compare" method="post">
+            <form action="/compare" autocomplete="off" method="post">
                 <select name="user0">
                     {% for user in users %}
                     <option value="{{ user.username }}">{{ user.username }}</option>
@@ -44,14 +44,13 @@
             {% for user in users %}
             <a href="/user/{{ user.name }}"><span class="stack">{{ user.name }}</span></a>
             {% endfor %}
-            <form action="/user" method="post">
+            <form action="/user" autocomplete="off" method="post">
                 <input type="text" name="user_name" placeholder="User to add">
                 <input type="submit" value="Add User">
             </form>
         </div>
         {% endblock %}
     </article>
-    <!-- <script src="https://cdn.jsdelivr.net/npm/umbrellajs"/> -->
 </body>
 
 </html>
